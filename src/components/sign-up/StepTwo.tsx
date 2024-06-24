@@ -63,8 +63,13 @@ const StepTwo = ({ setStep }: Props) => {
     }
   };
   const cityValue = getValues("city");
+  console.log("cityValue--", cityValue)
+  console.log("citySelection--", citySelection)
 
   const openNotification = (city) => {
+    console.log("openNotification argument city--", city)
+    console.log("openNotification localState citySelection--", citySelection)
+    console.log("openNotification fieldValue formHook cityValue--", cityValue)
     const key = `open${Date.now()}`;
     const btn = (
       <Space>

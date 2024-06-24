@@ -20,7 +20,7 @@ const FinalCard = ({ displayFaq, setDisplayFaq }) => {
   }, [copySuccess]);
 
   async function copyToClip() {
-    const url = location.href;
+    const url = "telephonegame.art";
     await navigator.clipboard.writeText(url);
     setCopySuccess(true);
   }
@@ -47,7 +47,7 @@ const FinalCard = ({ displayFaq, setDisplayFaq }) => {
       </div>
       {copySuccess ? (
         <Alert
-          message="Copied to Clipboard!"
+          message="Link copied to clipboard!"
           // type="success"
           type="info"
           showIcon
