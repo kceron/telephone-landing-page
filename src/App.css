@@ -26,6 +26,7 @@ html * {
   --desktop-font-size: clamp(0.5rem, 2vw, 1.5rem);
   --mobile-font-size: clamp(1rem, 2.5vw, 2rem);
 }
+
 .final_card:before {
   position: absolute;
   z-index: -1;

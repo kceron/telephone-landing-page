@@ -1,7 +1,7 @@
 import React from "react";
 import "../App.css";
 
-const CONTACT_EMAIL = "telephone.outreach@gmail.com";
+export const CONTACT_EMAIL = "telephone.outreach@gmail.com";
 
 export const EmailAnchor = () => {
   return (

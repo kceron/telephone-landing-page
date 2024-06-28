@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import StepOne from "./StepOne";
 import StepTwo from "./StepTwo";
 import StepThree from "./StepThree";
 import StepFour from "./StepFour";
-// import FinalCard from "./FinalCard";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import { SignUpFormType } from "./types";
+import { CONTACT_EMAIL } from "../EmailAnchor";
+import Modal from "antd/es/modal/Modal";
+import { PrimaryButton } from "../PrimaryButton";
+
+const ALERT_TEXT = `If you continue to see this message please contact ${CONTACT_EMAIL} for help.`;
 
 const SignUpForm = ({ step, setStep }) => {
   const formMethods = useForm<SignUpFormType>({
@@ -31,6 +35,11 @@ const SignUpForm = ({ step, setStep }) => {
     },
     mode: "onTouched",
   });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const csrfcookie = function () {
     // for django csrf protection
     let cookieValue = "",
@@ -48,13 +57,11 @@ const SignUpForm = ({ step, setStep }) => {
     return cookieValue;
   };
 
-  const submitForm: SubmitHandler<SignUpFormType> = (values) => {
-    let csrf_token = csrfcookie();
-    // console.log("token: " + csrf_token);
-
-    // this needs to updated with the new form
-
+  const submitForm: SubmitHandler<SignUpFormType> = values => {
+    setLoading(true);
+    const csrf_token = csrfcookie();
     const formData = new FormData();
+
     formData.append("email", values.email);
     formData.append("first_name", values.firstName);
     formData.append("last_name", values.lastName);
@@ -76,22 +83,13 @@ const SignUpForm = ({ step, setStep }) => {
     }
     formData.append("art_form", values.artForm.substring(0, 2).toUpperCase());
     formData.append("abstractness", values.abstract);
-    // i want to check if we have a file then we append the
-    const validatedSamples = values.samples.forEach((sample, i) => {
+
+    values.samples.forEach((sample, i) => {
       sample.file
         ? formData.append(`file_${i + 1}`, sample.file)
         : formData.append(`link_${i + 1}`, sample.mediaLink);
     });
 
-    // formData.append("link_1", values.samples[0].mediaLink);
-
-    // formData.append("file_1", values.samples[0].file);
-    // formData.append("link_2", values.samples[1].mediaLink);
-    // formData.append("file_2", values.samples[1].file);
-    // formData.append("link_3", values.samples[2].mediaLink);
-    // formData.append("file_3", values.samples[2].file);
-
-    console.log("FROM SUBMIT", { formData, validatedSamples });
     fetch("/", {
       method: "POST",
       headers: {
@@ -99,26 +97,44 @@ const SignUpForm = ({ step, setStep }) => {
       },
       body: formData,
     })
-      .then((response) => {
+      .then(response => {
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          throw new Error(
+            `Network response was not ok, status: ${response.status}`
+          );
         }
         return response.json();
       })
-      .then((data) => {
+      .then(data => {
         console.log("success... data--", data);
+        setStep(5);
       })
-      .catch((error) => {
-        console.log(error);
-        var alert_text = "Failed. Contact an administrator.";
-        alert(alert_text);
-      });
-
-    setStep(5);
+      .catch(error => {
+        // what do we want to do with the error?
+        setError(error);
+        setIsModalOpen(true);
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
     <FormProvider {...formMethods}>
+      <Modal
+        title="Oops! Looks like something went wrong."
+        open={isModalOpen}
+        closable={false}
+        centered
+        footer={
+          <PrimaryButton
+            onClick={() => {
+              setIsModalOpen(false);
+            }}
+            text={"OK"}
+          />
+        }
+      >
+        {ALERT_TEXT}
+      </Modal>
       <form
         className="sign_up_form"
         onSubmit={formMethods.handleSubmit(submitForm)}
@@ -130,12 +146,11 @@ const SignUpForm = ({ step, setStep }) => {
         ) : step === 3 ? (
           <StepThree setStep={setStep} />
         ) : step === 4 ? (
-          <StepFour setStep={setStep} />
-        ) 
-        // : step === 5 ? (
+          <StepFour setStep={setStep} loading={loading} error={error} />
+        ) : // : step === 5 ? (
         //   <FinalCard displayFaq={displayFaq} setDisplayFaq={setDisplayFaq} />
-        // ) 
-        : null}
+        // )
+        null}
       </form>
     </FormProvider>
   );
